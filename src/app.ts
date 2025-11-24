@@ -1,24 +1,25 @@
 import express, { Express } from "express";
- 
+
+
+import gameRoutes from "../src/api/v1/routes/GameRoutes";
+import matchRoutes from "../src/api/v1/routes/MatchRoutes";
+import playerRoutes from "../src/api/v1/routes/PlayerRoutes";     
 
 const app: Express = express();
- 
-// Interface for health check response
+
 interface HealthCheckResponse {
     status: string;
     uptime: number;
     timestamp: string;
     version: string;
 }
- 
+
 app.use(express.json());
- 
-// Base test route
-app.get("/", (req,res) => {
+
+app.get("/", (req, res) => {
     res.send("Welcome to SupperMart");
-})
- 
-// Health check route to return service status
+});
+
 app.get("/api/v1/health", (req, res) => {
     const healthData: HealthCheckResponse = {
         status: "OK",
@@ -27,7 +28,12 @@ app.get("/api/v1/health", (req, res) => {
         version: "1.0.0",
     };
     res.json(healthData);
-})
- 
-//Export the app instance to be used in server.ts
+});
+
+
+app.use("/api/v1/games", gameRoutes);
+app.use("/api/v1/matches", matchRoutes); 
+app.use("/api/v1/players", playerRoutes);
+
+
 export default app;

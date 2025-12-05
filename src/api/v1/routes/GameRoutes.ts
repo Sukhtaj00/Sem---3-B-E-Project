@@ -1,11 +1,8 @@
 import express from "express";
-import {
-    getAllGames,
-    getGameById,
-    createGame,
-    updateGame,
-    deleteGame,
-} from "../controllers/GameController";
+import * as gameController from "../controllers/GameController";
+import authenticate from "../middleware/authenticate";
+import { gameSchemas } from "../validation/GameValidation";
+import { validateRequest } from "../middleware/validate";
 
 const router = express.Router();
 
@@ -19,7 +16,7 @@ const router = express.Router();
  *       200:
  *         description: Returns a list of games
  */
-router.get("/", getAllGames);
+router.get("/", gameController.createGame);
 
 /**
  * @openapi
@@ -40,7 +37,7 @@ router.get("/", getAllGames);
  *       404:
  *         description: Game not found
  */
-router.get("/:id", getGameById);
+router.get("/:id", gameController.getGameById);
 
 /**
  * @openapi
@@ -74,7 +71,12 @@ router.get("/:id", getGameById);
  *       400:
  *         description: Invalid payload
  */
-router.post("/", createGame);
+router.post(
+    "/", 
+    authenticate,
+    validateRequest(gameSchemas.create),
+    gameController.createGame);
+
 
 /**
  * @openapi
@@ -111,7 +113,11 @@ router.post("/", createGame);
  *       404:
  *         description: Game not found
  */
-router.put("/:id", updateGame);
+router.put(
+    "/:id",
+    authenticate,
+    validateRequest(gameSchemas.update),
+     gameController.updateGame);
 
 /**
  * @openapi
@@ -132,6 +138,10 @@ router.put("/:id", updateGame);
  *       404:
  *         description: Game not found
  */
-router.delete("/:id", deleteGame);
+router.delete(
+    "/:id", 
+    authenticate,
+    validateRequest(gameSchemas.delete),
+    gameController.deleteGame);
 
 export default router;

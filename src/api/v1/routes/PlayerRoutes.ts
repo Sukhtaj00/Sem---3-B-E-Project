@@ -1,11 +1,8 @@
 import { Router } from "express";
-import {
-    getAllPlayers,
-    createPlayer,
-    getPlayerById,
-    updatePlayer,
-    deletePlayer,
-} from "../controllers/PlayerController";
+import * as playerController from "../controllers/PlayerController";
+import authenticate from "../middleware/authenticate";
+import { playerSchemas } from "../validation/PlayerValidation";
+import { validateRequest } from "../middleware/validate";
 
 const router: Router = Router();
 
@@ -19,7 +16,7 @@ const router: Router = Router();
  *       200:
  *         description: Returns a list of players
  */
-router.get("/", getAllPlayers);
+router.get("/", playerController.getAllPlayers);
 
 /**
  * @openapi
@@ -51,7 +48,11 @@ router.get("/", getAllPlayers);
  *       400:
  *         description: Invalid payload
  */
-router.post("/", createPlayer);
+router.post(
+    "/", 
+    authenticate,
+    validateRequest(playerSchemas.create),
+    playerController.createPlayer);
 
 /**
  * @openapi
@@ -72,7 +73,11 @@ router.post("/", createPlayer);
  *       404:
  *         description: Player not found
  */
-router.get("/:id", getPlayerById);
+router.get(
+    "/:id", 
+    authenticate,
+    validateRequest(playerSchemas.getPlayerById),
+    playerController.getPlayerById);
 
 /**
  * @openapi
@@ -109,7 +114,11 @@ router.get("/:id", getPlayerById);
  *       404:
  *         description: Player not found
  */
-router.put("/:id", updatePlayer);
+router.put(
+    "/:id", 
+    authenticate,
+    validateRequest(playerSchemas.update),
+    playerController.updatePlayer);
 
 /**
  * @openapi
@@ -130,6 +139,10 @@ router.put("/:id", updatePlayer);
  *       404:
  *         description: Player not found
  */
-router.delete("/:id", deletePlayer);
+router.delete(
+    "/:id", 
+    authenticate,
+    validateRequest(playerSchemas.delete),
+    playerController.deletePlayer);
 
 export default router;

@@ -1,11 +1,8 @@
 import { Router } from "express";
-import {
-    getAllMatches,
-    createMatch,
-    getMatchById,
-    updateMatch,
-    deleteMatch,
-} from "../controllers/MatchController";
+import * as matchController from "../controllers/MatchController";
+import authenticate from "../middleware/authenticate";
+import { matchSchemas } from "../validation/MatchValidation";
+import { validateRequest } from "../middleware/validate";
 
 const router: Router = Router();
 
@@ -19,7 +16,7 @@ const router: Router = Router();
  *       200:
  *         description: Returns a list of matches
  */
-router.get("/", getAllMatches);
+router.get("/", matchController.getAllMatches);
 
 /**
  * @openapi
@@ -57,7 +54,11 @@ router.get("/", getAllMatches);
  *       400:
  *         description: Invalid payload
  */
-router.post("/", createMatch);
+router.post(
+    "/",
+    authenticate,
+    validateRequest(matchSchemas.create),
+    matchController.createMatch);
 
 /**
  * @openapi
@@ -78,7 +79,11 @@ router.post("/", createMatch);
  *       404:
  *         description: Match not found
  */
-router.get("/:id", getMatchById);
+router.get(
+    "/:id", 
+    authenticate,
+    validateRequest(matchSchemas.getMatchById),
+    matchController.getMatchById);
 
 /**
  * @openapi
@@ -119,7 +124,11 @@ router.get("/:id", getMatchById);
  *       404:
  *         description: Match not found
  */
-router.put("/:id", updateMatch);
+router.put(
+    "/:id", 
+    authenticate,
+    validateRequest(matchSchemas.update),
+    matchController.updateMatch);
 
 /**
  * @openapi
@@ -140,6 +149,10 @@ router.put("/:id", updateMatch);
  *       404:
  *         description: Match not found
  */
-router.delete("/:id", deleteMatch);
+router.delete(
+    "/:id", 
+    authenticate,
+    validateRequest(matchSchemas.delete),
+    matchController.deleteMatch);
 
 export default router;

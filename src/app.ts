@@ -2,6 +2,8 @@ import express, { Express } from "express";
 import dotenv from "dotenv";
 dotenv.config()
 import helmet from "helmet";
+import cors from "cors";
+import setupSwagger from "../config/swagger"
 import gameRoutes from "../src/api/v1/routes/GameRoutes";
 import matchRoutes from "../src/api/v1/routes/MatchRoutes";
 import playerRoutes from "../src/api/v1/routes/PlayerRoutes";
@@ -13,6 +15,8 @@ import {
     errorLogger,
     consoleLogger,
 } from "./api/v1/middleware/logger";
+import { getHelmetConfig } from "../config/helmetConfig";
+import { getCorsConfig } from "../config/corsConfig";
 
 const app: Express = express();
 
@@ -26,6 +30,9 @@ interface HealthCheckResponse {
 app.use(express.json());
 
 app.use(helmet());
+app.use(helmet(getHelmetConfig()));
+app.use(cors());
+app.use(cors(getCorsConfig()));
 
 app.use(accessLogger);
 app.use(errorLogger);
@@ -51,6 +58,8 @@ app.use("/api/v1/matches", matchRoutes);
 app.use("/api/v1/players", playerRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/admin", adminRoutes);
+
+setupSwagger(app);
 
 // global error handling middleware that must be applied last
 app.use(errorHandler)

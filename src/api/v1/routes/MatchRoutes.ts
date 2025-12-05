@@ -3,6 +3,8 @@ import * as matchController from "../controllers/MatchController";
 import authenticate from "../middleware/authenticate";
 import { matchSchemas } from "../validation/MatchValidation";
 import { validateRequest } from "../middleware/validate";
+import isAuthorized from "../middleware/authorize";
+import { AuthorizationOptions } from "../models/authorizationOptions";
 
 const router: Router = Router();
 
@@ -57,6 +59,7 @@ router.get("/", matchController.getAllMatches);
 router.post(
     "/",
     authenticate,
+    isAuthorized({ hasRole: ["admin", "manager"] } as AuthorizationOptions),    
     validateRequest(matchSchemas.create),
     matchController.createMatch);
 
@@ -82,6 +85,7 @@ router.post(
 router.get(
     "/:id", 
     authenticate,
+    isAuthorized({ hasRole: ["admin", "manager"] } as AuthorizationOptions),    
     validateRequest(matchSchemas.getMatchById),
     matchController.getMatchById);
 
@@ -127,6 +131,7 @@ router.get(
 router.put(
     "/:id", 
     authenticate,
+    isAuthorized({ hasRole: ["admin", "manager"] } as AuthorizationOptions),    
     validateRequest(matchSchemas.update),
     matchController.updateMatch);
 

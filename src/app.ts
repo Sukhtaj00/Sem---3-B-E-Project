@@ -3,7 +3,10 @@ import express, { Express } from "express";
 
 import gameRoutes from "../src/api/v1/routes/GameRoutes";
 import matchRoutes from "../src/api/v1/routes/MatchRoutes";
-import playerRoutes from "../src/api/v1/routes/PlayerRoutes";     
+import playerRoutes from "../src/api/v1/routes/PlayerRoutes";
+import errorHandler from "./api/v1/middleware/errorHandler";
+import userRoutes from "./api/v1/routes/userRoutes";
+import adminRoutes from "../src/api/v1/routes/adminRoutes"   
 
 const app: Express = express();
 
@@ -34,6 +37,11 @@ app.get("/api/v1/health", (req, res) => {
 app.use("/api/v1/games", gameRoutes);
 app.use("/api/v1/matches", matchRoutes); 
 app.use("/api/v1/players", playerRoutes);
+app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/admin", adminRoutes);
+
+// global error handling middleware that must be applied last
+app.use(errorHandler)
 
 
 export default app;

@@ -14,11 +14,23 @@ const router = express.Router();
  *   get:
  *     summary: Get all games
  *     tags: [Games]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Returns a list of games
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Game'
+ *       401:
+ *         description: Unauthorized - Authentication required
+ *       500:
+ *         description: Internal server error
  */
-router.get("/", gameController.createGame);
+router.get("/", gameController.getAllGames);
 
 /**
  * @openapi
@@ -26,6 +38,8 @@ router.get("/", gameController.createGame);
  *   get:
  *     summary: Get game by ID
  *     tags: [Games]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -33,11 +47,22 @@ router.get("/", gameController.createGame);
  *         description: ID of the game
  *         schema:
  *           type: string
+ *           example: "game-123"
  *     responses:
  *       200:
  *         description: Game data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Game'
+ *       400:
+ *         description: Invalid game ID format
+ *       401:
+ *         description: Unauthorized - Authentication required
  *       404:
  *         description: Game not found
+ *       500:
+ *         description: Internal server error
  */
 router.get("/:id", gameController.getGameById);
 
@@ -47,39 +72,39 @@ router.get("/:id", gameController.getGameById);
  *   post:
  *     summary: Create a new game
  *     tags: [Games]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - name
- *               - description
- *               - modes
- *             properties:
- *               name:
- *                 type: string
- *                 example: "Space Invaders"
- *               description:
- *                 type: string
- *                 example: "Classic arcade space shooting game"
- *               modes:
- *                 type: string
- *                 example: "Single Player, Multiplayer"
+ *             $ref: '#/components/schemas/CreateGameRequest'
  *     responses:
  *       201:
- *         description: Game created
+ *         description: Game created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Game'
  *       400:
- *         description: Invalid payload
+ *         description: Invalid payload or validation error
+ *       401:
+ *         description: Unauthorized - Authentication required
+ *       403:
+ *         description: Forbidden - Insufficient permissions (requires admin or manager role)
+ *       409:
+ *         description: Game with this name already exists
+ *       500:
+ *         description: Internal server error
  */
 router.post(
     "/", 
     authenticate,
     isAuthorized({ hasRole: ["admin", "manager"] } as AuthorizationOptions),    
     validateRequest(gameSchemas.create),
-    gameController.createGame);
-
+    gameController.createGame
+);
 
 /**
  * @openapi
@@ -87,6 +112,8 @@ router.post(
  *   put:
  *     summary: Update an existing game
  *     tags: [Games]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -94,34 +121,40 @@ router.post(
  *         description: ID of the game to update
  *         schema:
  *           type: string
+ *           example: "game-123"
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *                 example: "Space Invaders Deluxe"
- *               description:
- *                 type: string
- *                 example: "Enhanced version of classic arcade game"
- *               modes:
- *                 type: string
- *                 example: "Single Player, Multiplayer, Challenge"
+ *             $ref: '#/components/schemas/UpdateGameRequest'
  *     responses:
  *       200:
- *         description: Game updated
+ *         description: Game updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Game'
+ *       400:
+ *         description: Invalid payload or validation error
+ *       401:
+ *         description: Unauthorized - Authentication required
+ *       403:
+ *         description: Forbidden - Insufficient permissions (requires admin or manager role)
  *       404:
  *         description: Game not found
+ *       409:
+ *         description: Game with this name already exists
+ *       500:
+ *         description: Internal server error
  */
 router.put(
     "/:id",
     authenticate,
     isAuthorized({ hasRole: ["admin", "manager"] } as AuthorizationOptions),    
     validateRequest(gameSchemas.update),
-     gameController.updateGame);
+    gameController.updateGame
+);
 
 /**
  * @openapi
@@ -129,6 +162,8 @@ router.put(
  *   delete:
  *     summary: Delete a game
  *     tags: [Games]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -136,17 +171,38 @@ router.put(
  *         description: ID of the game
  *         schema:
  *           type: string
+ *           example: "game-123"
  *     responses:
  *       200:
- *         description: Game deleted
+ *         description: Game deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Game deleted successfully"
+ *                 id:
+ *                   type: string
+ *                   example: "game-123"
+ *       400:
+ *         description: Invalid game ID format
+ *       401:
+ *         description: Unauthorized - Authentication required
+ *       403:
+ *         description: Forbidden - Insufficient permissions (requires admin or manager role)
  *       404:
  *         description: Game not found
+ *       500:
+ *         description: Internal server error
  */
 router.delete(
     "/:id", 
     authenticate,
     isAuthorized({ hasRole: ["admin", "manager"] } as AuthorizationOptions),    
     validateRequest(gameSchemas.delete),
-    gameController.deleteGame);
+    gameController.deleteGame
+);
 
 export default router;

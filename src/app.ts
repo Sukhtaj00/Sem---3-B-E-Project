@@ -1,7 +1,7 @@
 import express, { Express } from "express";
 import dotenv from "dotenv";
 dotenv.config()
-
+import helmet from "helmet";
 import gameRoutes from "../src/api/v1/routes/GameRoutes";
 import matchRoutes from "../src/api/v1/routes/MatchRoutes";
 import playerRoutes from "../src/api/v1/routes/PlayerRoutes";
@@ -24,6 +24,8 @@ interface HealthCheckResponse {
 }
 
 app.use(express.json());
+
+app.use(helmet());
 
 app.use(accessLogger);
 app.use(errorLogger);

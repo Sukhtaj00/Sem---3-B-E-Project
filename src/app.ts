@@ -4,6 +4,7 @@ dotenv.config()
 import helmet from "helmet";
 import cors from "cors";
 import setupSwagger from "../config/swagger"
+import { apiLimiter } from "../src/api/v1/middleware/express-rate-limit";
 import gameRoutes from "../src/api/v1/routes/GameRoutes";
 import matchRoutes from "../src/api/v1/routes/MatchRoutes";
 import playerRoutes from "../src/api/v1/routes/PlayerRoutes";
@@ -33,6 +34,7 @@ app.use(helmet());
 app.use(helmet(getHelmetConfig()));
 app.use(cors());
 app.use(cors(getCorsConfig()));
+app.use("/api",apiLimiter);
 
 app.use(accessLogger);
 app.use(errorLogger);

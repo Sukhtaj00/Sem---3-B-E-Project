@@ -7,6 +7,11 @@ import playerRoutes from "../src/api/v1/routes/PlayerRoutes";
 import errorHandler from "./api/v1/middleware/errorHandler";
 import userRoutes from "./api/v1/routes/userRoutes";
 import adminRoutes from "../src/api/v1/routes/adminRoutes"   
+import {
+    accessLogger,
+    errorLogger,
+    consoleLogger,
+} from "./api/v1/middleware/logger";
 
 const app: Express = express();
 
@@ -18,6 +23,10 @@ interface HealthCheckResponse {
 }
 
 app.use(express.json());
+
+app.use(accessLogger);
+app.use(errorLogger);
+app.use(consoleLogger);
 
 app.get("/", (req, res) => {
     res.send("Welcome to SupperMart");

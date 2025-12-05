@@ -1,105 +1,87 @@
 import request from "supertest";
+import express from "express";
+import matchRoutes from "../src/api/v1/routes/MatchRoutes";
+import { Request, Response, NextFunction } from "express";
 
-import app from "../src/app";
+// Mocking authentication middleware
+jest.mock("../src/api/v1/middleware/authenticate", () => {
+  return {
+    default: jest.fn((_req: Request, _res: Response, next: NextFunction) => {
+      // Add mock user for tests that require authentication
+      (_req as any).user = { uid: "test-user-id", role: "admin" };
+      return next();
+    })
+  };
+});
 
-import * as matchController from "../src/api/v1/controllers/MatchController";
+// Mocking authorization middleware
+jest.mock("../src/api/v1/middleware/authorize", () => {
+  return {
+    default: jest.fn(() => {
+      return jest.fn((_req: Request, _res: Response, next: NextFunction) => {
+        return next();
+      });
+    })
+  };
+});
 
-import { HTTP_STATUS } from "../src/constants/httpConstants";
-
-// Mock the controller functions properly
-jest.mock("../src/api/v1/controllers/MatchController", () => ({
-    getAllMatches: jest.fn(),
-    getMatchById: jest.fn(),
-    createMatch: jest.fn(),
-    updateMatch: jest.fn(),
-    deleteMatch: jest.fn(),
+// Mocking validation middleware
+jest.mock("../src/api/v1/middleware/validate", () => ({
+  validateRequest: jest.fn(() => (req: Request, res: Response, next: NextFunction) => next())
 }));
 
-// Mock implementation for each controller
-const mockMatchController = matchController as jest.Mocked<typeof matchController>;
+const app = express();
+app.use(express.json());
+app.use("/api/v1/matches", matchRoutes);
 
 describe("Match Routes", () => {
-    beforeEach(() => {
-        // Setup mock implementations that properly handle Express response
-        mockMatchController.getAllMatches.mockImplementation((req, res, next) => {
-            res.status(HTTP_STATUS.OK).json({ success: true, data: [], message: "Success" });
-            return Promise.resolve();
-        });
-
-        mockMatchController.getMatchById.mockImplementation((req, res, next) => {
-            res.status(HTTP_STATUS.OK).json({ success: true, data: {}, message: "Success" });
-            return Promise.resolve();
-        });
-
-        mockMatchController.createMatch.mockImplementation((req, res, next) => {
-            res.status(HTTP_STATUS.CREATED).json({ success: true, data: {}, message: "Created" });
-            return Promise.resolve();
-        });
-
-        mockMatchController.updateMatch.mockImplementation((req, res, next) => {
-            res.status(HTTP_STATUS.OK).json({ success: true, data: {}, message: "Updated" });
-            return Promise.resolve();
-        });
-
-        mockMatchController.deleteMatch.mockImplementation((req, res, next) => {
-            res.status(HTTP_STATUS.OK).json({ success: true, data: null, message: "Deleted" });
-            return Promise.resolve();
-        });
+  describe("GET /api/v1/matches", () => {
+    it("should return a list of matches", async () => {
+      const response = await request(app).get("/api/v1/matches");
+      expect(response.status).toBe(200);
+      expect(response.body).toBeInstanceOf(Array);
     });
+  });
 
-    afterEach(() => {
-        jest.clearAllMocks();
+  describe("POST /api/v1/matches", () => {
+    it("should create a new match", async () => {
+      const newMatch = {
+        gameId: 1,
+        player1Id: 1,
+        player2Id: 2,
+        date: "2023-12-01",
+        location: "Test Location"
+      };
+      const response = await request(app)
+        .post("/api/v1/matches")
+        .send(newMatch);
+      expect(response.status).toBe(201);
+      expect(response.body).toHaveProperty("id");
     });
+  });
 
-    describe("GET /api/v1/matches", () => {
-        it("should call getAllMatches controller", async () => {
-            await request(app).get("/api/v1/matches");
-
-            expect(mockMatchController.getAllMatches).toHaveBeenCalled();
-        });
+  describe("GET /api/v1/matches/:id", () => {
+    it("should return a match by ID", async () => {
+      const response = await request(app).get("/api/v1/matches/1");
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty("id");
     });
+  });
 
-    describe("GET /api/v1/matches/:id", () => {
-        it("should call getMatchById controller", async () => {
-            await request(app).get("/api/v1/matches/test-id");
-
-            expect(mockMatchController.getMatchById).toHaveBeenCalled();
-        });
+  describe("PUT /api/v1/matches/:id", () => {
+    it("should update a match", async () => {
+      const updatedData = { location: "Updated Location" };
+      const response = await request(app)
+        .put("/api/v1/matches/1")
+        .send(updatedData);
+      expect(response.status).toBe(200);
     });
+  });
 
-    describe("POST /api/v1/matches", () => {
-        it("should call createMatch controller", async () => {
-            const newMatch = {
-                gameId: "game123",
-                playerId: "player456",
-                score: 1500,
-                timestamp: "2024-01-15T10:30:00Z"
-            };
-
-            await request(app).post("/api/v1/matches").send(newMatch);
-
-            expect(mockMatchController.createMatch).toHaveBeenCalled();
-        });
+  describe("DELETE /api/v1/matches/:id", () => {
+    it("should delete a match", async () => {
+      const response = await request(app).delete("/api/v1/matches/1");
+      expect(response.status).toBe(200);
     });
-
-    describe("PUT /api/v1/matches/:id", () => {
-        it("should call updateMatch controller", async () => {
-            const updateData = {
-                score: 1800,
-                timestamp: "2024-01-15T11:30:00Z"
-            };
-
-            await request(app).put("/api/v1/matches/test-id").send(updateData);
-
-            expect(mockMatchController.updateMatch).toHaveBeenCalled();
-        });
-    });
-
-    describe("DELETE /api/v1/matches/:id", () => {
-        it("should call deleteMatch controller", async () => {
-            await request(app).delete("/api/v1/matches/test-id");
-
-            expect(mockMatchController.deleteMatch).toHaveBeenCalled();
-        });
-    });
+  });
 });

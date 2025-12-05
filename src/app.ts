@@ -1,5 +1,6 @@
 import express, { Express } from "express";
-
+import dotenv from "dotenv";
+dotenv.config()
 
 import gameRoutes from "../src/api/v1/routes/GameRoutes";
 import matchRoutes from "../src/api/v1/routes/MatchRoutes";

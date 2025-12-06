@@ -206,7 +206,7 @@ router.put(
 router.delete(
     "/:id", 
     authenticate,
-    validateRequest(matchSchemas.delete),
+    isAuthorized({ hasRole: ["admin", "manager"] } as AuthorizationOptions),
     matchController.deleteMatch
 );
 

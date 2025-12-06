@@ -208,8 +208,7 @@ router.put(
 router.delete(
     "/:id", 
     authenticate,
-    isAuthorized({ hasRole: ["admin", "manager"] } as AuthorizationOptions),    
-    validateRequest(playerSchemas.delete),
+    isAuthorized({ hasRole: ["admin", "manager"] } as AuthorizationOptions), 
     playerController.deletePlayer
 );
 

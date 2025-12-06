@@ -1,104 +1,76 @@
 import request from "supertest";
-
 import app from "../src/app";
-
 import * as gameController from "../src/api/v1/controllers/GameController";
-
 import { HTTP_STATUS } from "../src/constants/httpConstants";
+import { Request, Response, NextFunction } from "express";
 
-// Mock the controller functions properly
+
+// Mock controller functions
 jest.mock("../src/api/v1/controllers/GameController", () => ({
-    getAllGames: jest.fn(),
-    getGameById: jest.fn(),
-    createGame: jest.fn(),
-    updateGame: jest.fn(),
-    deleteGame: jest.fn(),
+  getAllGames: jest.fn((req, res) => res.status(HTTP_STATUS.OK).send()),
+  getGameById: jest.fn((req, res) => res.status(HTTP_STATUS.OK).send()),
+  createGame: jest.fn((req, res) => res.status(HTTP_STATUS.CREATED).send()),
+  updateGame: jest.fn((req, res) => res.status(HTTP_STATUS.OK).send()),
+  deleteGame: jest.fn((req, res) => res.status(HTTP_STATUS.OK).send())
 }));
 
-// Mock implementation for each controller
-const mockGameController = gameController as jest.Mocked<typeof gameController>;
+// Mock authentication (bypass)
+jest.mock("../src/api/v1/middleware/authenticate", () => {
+  return jest.fn((_req, _res, next: NextFunction) => next());
+});
+
+jest.mock("../src/api/v1/middleware/authorize", () => {
+  return jest.fn(() => (_req: Request, _res: Response, next: NextFunction) => next());
+});
+
+jest.mock("../src/api/v1/middleware/validate", () => ({
+  validateRequest: () => (_req: Request, _res: Response, next: NextFunction) => next()
+}));
 
 describe("Game Routes", () => {
-    beforeEach(() => {
-        // Setup mock implementations that properly handle Express response
-        mockGameController.getAllGames.mockImplementation((req, res, next) => {
-            res.status(HTTP_STATUS.OK).json({ success: true, data: [], message: "Success" });
-            return Promise.resolve();
-        });
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
 
-        mockGameController.getGameById.mockImplementation((req, res, next) => {
-            res.status(HTTP_STATUS.OK).json({ success: true, data: {}, message: "Success" });
-            return Promise.resolve();
-        });
-
-        mockGameController.createGame.mockImplementation((req, res, next) => {
-            res.status(HTTP_STATUS.CREATED).json({ success: true, data: {}, message: "Created" });
-            return Promise.resolve();
-        });
-
-        mockGameController.updateGame.mockImplementation((req, res, next) => {
-            res.status(HTTP_STATUS.OK).json({ success: true, data: {}, message: "Updated" });
-            return Promise.resolve();
-        });
-
-        mockGameController.deleteGame.mockImplementation((req, res, next) => {
-            res.status(HTTP_STATUS.OK).json({ success: true, data: null, message: "Deleted" });
-            return Promise.resolve();
-        });
+  describe("GET /api/v1/games", () => {
+    it("should call getAllGames controller", async () => {
+      await request(app).get("/api/v1/games");
+      expect(gameController.getAllGames).toHaveBeenCalled();
     });
+  });
 
-    afterEach(() => {
-        jest.clearAllMocks();
+  describe("GET /api/v1/games/:id", () => {
+    it("should call getGameById controller", async () => {
+      await request(app).get("/api/v1/games/test-id");
+      expect(gameController.getGameById).toHaveBeenCalled();
     });
+  });
 
-    describe("GET /api/v1/games", () => {
-        it("should call getAllGames controller", async () => {
-            await request(app).get("/api/v1/games");
+  describe("POST /api/v1/games", () => {
+    it("should call createGame controller", async () => {
+      const newGame = { name: "New Game" };
 
-            expect(mockGameController.getAllGames).toHaveBeenCalled();
-        });
+      await request(app).post("/api/v1/games").send(newGame);
+      expect(gameController.createGame).toHaveBeenCalled();
     });
+  });
 
-    describe("GET /api/v1/games/:id", () => {
-        it("should call getGameById controller", async () => {
-            await request(app).get("/api/v1/games/test-id");
+  describe("PUT /api/v1/games/:id", () => {
+    it("should call updateGame controller", async () => {
+      const updateData = { name: "Updated Game" };
 
-            expect(mockGameController.getGameById).toHaveBeenCalled();
-        });
+      await request(app)
+        .put("/api/v1/games/test-id")
+        .send(updateData);
+
+      expect(gameController.updateGame).toHaveBeenCalled();
     });
+  });
 
-    describe("POST /api/v1/games", () => {
-        it("should call createGame controller", async () => {
-            const newGame = {
-                name: "Space Invaders",
-                description: "Classic arcade space shooting game",
-                modes: "Single Player, Multiplayer"
-            };
-
-            await request(app).post("/api/v1/games").send(newGame);
-
-            expect(mockGameController.createGame).toHaveBeenCalled();
-        });
+  describe("DELETE /api/v1/games/:id", () => {
+    it("should call deleteGame controller", async () => {
+      await request(app).delete("/api/v1/games/test-id");
+      expect(gameController.deleteGame).toHaveBeenCalled();
     });
-
-    describe("PUT /api/v1/games/:id", () => {
-        it("should call updateGame controller", async () => {
-            const updateData = {
-                name: "Space Invaders Deluxe",
-                description: "Enhanced version of classic arcade game"
-            };
-
-            await request(app).put("/api/v1/games/test-id").send(updateData);
-
-            expect(mockGameController.updateGame).toHaveBeenCalled();
-        });
-    });
-
-    describe("DELETE /api/v1/games/:id", () => {
-        it("should call deleteGame controller", async () => {
-            await request(app).delete("/api/v1/games/test-id");
-
-            expect(mockGameController.deleteGame).toHaveBeenCalled();
-        });
-    });
+  });
 });

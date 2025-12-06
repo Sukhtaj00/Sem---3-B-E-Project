@@ -6,3 +6,6 @@
 ::1 - - [05/Dec/2025:11:35:38 +0000] "POST /api/v1/games HTTP/1.1" 403 77 "-" "PostmanRuntime/7.49.1"
 ::1 - - [05/Dec/2025:11:59:56 +0000] "GET /api/v1/games HTTP/1.1" 500 80 "-" "PostmanRuntime/7.49.1"
 ::1 - - [05/Dec/2025:12:00:49 +0000] "GET /api/v1/games HTTP/1.1" 500 80 "-" "PostmanRuntime/7.49.1"
+::1 - - [05/Dec/2025:13:01:34 +0000] "POST /api/v1/games HTTP/1.1" 403 77 "-" "PostmanRuntime/7.49.1"
+::1 - - [05/Dec/2025:13:01:48 +0000] "GET /api/v1/games HTTP/1.1" 200 167 "-" "PostmanRuntime/7.49.1"
+::1 - - [05/Dec/2025:13:02:32 +0000] "GET /api/v1/games HTTP/1.1" 200 167 "-" "PostmanRuntime/7.49.1"
